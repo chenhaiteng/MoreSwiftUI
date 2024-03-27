@@ -43,7 +43,7 @@ public extension Section where Parent : View, Footer == EmptyView {
     /// }
     /// ```
     init<Data, RowContent>(_ data: Data, isExpanded: Binding<Bool>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder header: () -> Parent = EmptyView.init) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element: Identifiable {
-        if #available(iOS 17.0, *) {
+        if #available(iOS 17.0, macOS 14.0, *) {
             self.init(isExpanded: isExpanded, content: {
                 ForEach(data, id: \.id) { sectionRow in
                     rowContent(sectionRow)
