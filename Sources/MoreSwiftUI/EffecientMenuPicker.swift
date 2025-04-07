@@ -31,10 +31,10 @@ private struct MenuLabelIcon: View {
 // Appearance of Menu
 private enum MenuDimension {
 #if os(macOS)
-    static let maxHeight: CGFloat = (NSScreen.main?.frame.height ?? 1200)*0.5
+    static let maxHeight: CGFloat = (NSScreen.main?.frame.height ?? 1000) * 0.8
     static let itemHeight: CGFloat = 30
 #elseif os(iOS)
-    static let maxHeight: CGFloat = UIScreen.main.bounds.height
+    static let maxHeight: CGFloat = UIScreen.main.bounds.height * 0.8
     static let itemHeight: CGFloat = 52
 #endif
 }
@@ -145,7 +145,7 @@ private struct MenuBody<SelectionValue, Content> : View where SelectionValue: Ha
                         }
                     }.preference(key: SubViewCount.self, value: subviews.count)
                 }.padding(.vertical, 10).onPreferenceChange(SubViewCount.self) { value in
-                    menuHeight = (CGFloat(value) * MenuDimension.itemHeight)
+                    menuHeight = min(CGFloat(value) * MenuDimension.itemHeight, MenuDimension.maxHeight)
                 }
             }.onAppear {
                 scroller.scrollTo(selection, anchor: .center)
