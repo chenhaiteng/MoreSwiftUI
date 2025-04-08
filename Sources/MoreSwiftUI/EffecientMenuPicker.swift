@@ -162,13 +162,13 @@ private struct MenuBody<SelectionValue, Content> : View where SelectionValue: Ha
 
 @available(watchOS, unavailable)
 @available(macOS 15.0, iOS 18.0, *)
-struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable {
+public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable {
     let title:String
     let content: () -> Content
     @Binding var selection: SelectionValue
     @State private var isPicking = false
     
-    var body: some View {
+    public var body: some View {
         Button {
             isPicking = true
         } label: {
@@ -186,7 +186,7 @@ struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, S
         }
     }
     
-    init(_ title: String, selection: Binding<SelectionValue>, @ViewBuilder content: @escaping () -> Content) {
+    public init(_ title: String, selection: Binding<SelectionValue>, @ViewBuilder content: @escaping () -> Content) {
         self.title = title
         self._selection = selection
         self.content = content
