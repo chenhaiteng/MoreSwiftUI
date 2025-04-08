@@ -8,7 +8,7 @@
 import SwiftUI
 
 // Preference Key to get menu item count
-struct SubViewCount : PreferenceKey {
+private struct SubViewCount : PreferenceKey {
     static let defaultValue: Int = 0
     static func reduce(value: inout Int, nextValue: () -> Int) {
         value += nextValue()
@@ -39,7 +39,7 @@ private enum MenuDimension {
 #endif
 }
 
-struct MenuLabelStyle: ViewModifier {
+private struct MenuLabelStyle: ViewModifier {
     func body(content: Content) -> some View {
 #if os(macOS)
         content.background(Color.accentColor, in: RoundedRectangle(cornerRadius: 3))
@@ -50,7 +50,7 @@ struct MenuLabelStyle: ViewModifier {
 }
 
 @available(macOS 13.3, iOS 10.0, *)
-struct MenuBodyStyle: ViewModifier {
+private struct MenuBodyStyle: ViewModifier {
     func body(content: Content) -> some View {
 #if os(macOS)
         content.frame(minWidth: 120, idealWidth: 200).presentationCompactAdaptation(.popover)
@@ -61,7 +61,7 @@ struct MenuBodyStyle: ViewModifier {
 }
 
 @available(macOS 13.3, iOS 16.4, *)
-struct MenuButtonStyle<MenuContent: View>: ViewModifier {
+private struct MenuButtonStyle<MenuContent: View>: ViewModifier {
     @Binding var isPicking: Bool
     let menuContent: () -> MenuContent
     func body(content: Content) -> some View {
@@ -84,21 +84,21 @@ struct MenuButtonStyle<MenuContent: View>: ViewModifier {
 }
 
 @available(macOS 13.3, iOS 10.0, *)
-extension View {
+private extension View {
     @ViewBuilder
-    public func menuLabelStyle() -> some View {
+    func menuLabelStyle() -> some View {
         modifier(MenuLabelStyle())
     }
     @ViewBuilder
-    public func menuBodyStyle() -> some View {
+    func menuBodyStyle() -> some View {
         modifier(MenuBodyStyle())
     }
 }
 
 @available(macOS 13.3, iOS 16.4, *)
-extension View {
+private extension View {
     @ViewBuilder
-    public func menuButtonStyle<MenuContent: View>(isPicking: Binding<Bool>, @ViewBuilder menuContent: @escaping () -> MenuContent) -> some View {
+    func menuButtonStyle<MenuContent: View>(isPicking: Binding<Bool>, @ViewBuilder menuContent: @escaping () -> MenuContent) -> some View {
         modifier(MenuButtonStyle(isPicking: isPicking, menuContent: menuContent))
     }
 }
