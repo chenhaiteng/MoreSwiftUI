@@ -6,13 +6,14 @@
 //
 
 import Foundation
+import Combine
 
 // For compatible with iOS 16, use ObservableObject rather than @Observable
 public class MenuFilterModel<Element>: ObservableObject {
     public let items: [Element]
     private let isIncluded: (Element, String) throws -> Bool
     
-    @Published var filteredItems: [Element] = []
+    @Published private(set) var filteredItems: [Element] = []
     
     public init(items: [Element], _ isIncluded: @escaping (_ element: Element, _ token: String) throws -> Bool) {
         self.items = items
@@ -23,5 +24,9 @@ public class MenuFilterModel<Element>: ObservableObject {
         filteredItems = items.filter { element in
             (try? isIncluded(element, token)) ?? false
         }
+    }
+    
+    public var displayCount: Int {
+        filteredItems.isEmpty ? items.count : filteredItems.count
     }
 }
