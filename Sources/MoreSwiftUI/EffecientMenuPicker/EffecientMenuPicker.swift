@@ -304,12 +304,16 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
 @available(macOS 13.3, iOS 16.4, *)
 struct PickerPreview : View {
     @State var selection: Int = 0
+    @State var search: String = ""
     var items: [Int]
     @ObservedObject var model: MenuFilterModel<Int>
     var body: some View {
         VStack {
-            
-            EffecientMenuPicker("For Each Demo - Pick \(selection)", selection: $selection) {
+            EffecientMenuPicker("For Each Demo - Pick \(selection)", selection: $selection, includes: { element in
+                guard !search.isEmpty else { return true }
+                return "\(element)".contains(search)
+            }) {
+                TextField("search", text: $search)
                 ForEach(0..<100) { i in
                     Text("\(i)")
                 }
