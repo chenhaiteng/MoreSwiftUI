@@ -49,20 +49,39 @@ private struct SearchInputField: View {
         self._text = text
         self.titleKey = titleKey
     }
-    
+}
+
+private struct Checkmark: View {
+    @State var checked: Bool
+    var body: some View {
+        Group {
+            if(checked) {
+                Image(systemName: "checkmark")
+                    .foregroundStyle(Color.accentColor)
+            } else {
+                Spacer()
+            }
+        }.frame(width: 30)
+    }
 }
 
 // Appearance of Menu
-private enum MenuDimension {
+@usableFromInline
+enum MenuDimension {
 #if os(macOS)
+    @usableFromInline
     static let maxHeight: CGFloat = (NSScreen.main?.frame.height ?? 1000) * 0.8
+    @usableFromInline
     static let itemHeight: CGFloat = 30
 #elseif os(iOS)
+    @usableFromInline
     static let maxHeight: CGFloat = UIScreen.main.bounds.height * 0.8
+    @usableFromInline
     static let itemHeight: CGFloat = 52
 #endif
 }
 
+// View Modifier of Menu
 private struct MenuLabelStyle: ViewModifier {
     func body(content: Content) -> some View {
 #if os(macOS)
@@ -148,13 +167,7 @@ private struct MenuBody<SelectionValue, Content> : View where SelectionValue: Ha
                                 ) {
                                     if includes(tag) {
                                         HStack(spacing: 0) {
-                                            if(tag == selection) {
-                                                Image(systemName: "checkmark")
-                                                    .frame(width: 40)
-                                                    .foregroundStyle(Color.accentColor)
-                                            } else {
-                                                Spacer().frame(width: 40)
-                                            }
+                                            Checkmark(checked: tag == selection)
                                             subview
                                                 .frame(
                                                     maxWidth:.infinity,
@@ -190,6 +203,13 @@ private struct MenuBody<SelectionValue, Content> : View where SelectionValue: Ha
     }
 }
 
+@inlinable func clamp<T: Comparable>(_ v: T, in range: Range<T>) -> T {
+    max(min(v, range.upperBound), range.lowerBound)
+}
+
+@inlinable func height(of count: Int) -> CGFloat {
+    clamp(CGFloat(count) * MenuDimension.itemHeight, in: 100.0..<MenuDimension.maxHeight)
+}
 
 private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Hashable {
     @Binding var selection: SelectionValue
@@ -207,13 +227,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
                         if model.filteredItems.isEmpty {
                             ForEach(model.items, id: \.self) { data in
                                 HStack(spacing: 0) {
-                                    if(data == selection) {
-                                        Image(systemName: "checkmark")
-                                            .frame(width: 40)
-                                            .foregroundStyle(Color.accentColor)
-                                    } else {
-                                        Spacer().frame(width: 40)
-                                    }
+                                    Checkmark(checked: data == selection)
                                     Text("\(data)").tag(data).frame(
                                         maxWidth:.infinity,
                                         alignment: .leading
@@ -227,13 +241,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
                         } else {
                             ForEach(model.filteredItems, id: \.self)  { data in
                                 HStack(spacing: 0) {
-                                    if(data == selection) {
-                                        Image(systemName: "checkmark")
-                                            .frame(width: 40)
-                                            .foregroundStyle(Color.accentColor)
-                                    } else {
-                                        Spacer().frame(width: 40)
-                                    }
+                                    Checkmark(checked: data == selection)
                                     Text("\(data)").tag(data).frame(
                                         maxWidth:.infinity,
                                         alignment: .leading
@@ -247,11 +255,10 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
                         }
                     }
                 }.onAppear {
-                    menuHeight = max(min(CGFloat(model.displayCount) * MenuDimension.itemHeight, MenuDimension.maxHeight), 100)
+                    menuHeight = height(of: model.displayCount)
                 }.frame(height: menuHeight)
                     .onChange(of: model.filteredItems) { _ in
-                        menuHeight = max(min(CGFloat(model.displayCount) * MenuDimension.itemHeight, MenuDimension.maxHeight), 100)
-                        
+                        menuHeight = height(of: model.displayCount)
                     }
                     .onChange(of: token) { newValue in
                         model.search(newValue)
