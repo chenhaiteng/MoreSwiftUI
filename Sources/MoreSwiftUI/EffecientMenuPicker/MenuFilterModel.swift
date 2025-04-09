@@ -9,8 +9,12 @@ import Foundation
 import Combine
 import SwiftUI
 
+public protocol MenuDisplayable {
+    func title() -> LocalizedStringKey
+}
+
 // For compatible with iOS 16, use ObservableObject rather than @Observable
-public class MenuFilterModel<Element>: ObservableObject {
+public class MenuFilterModel<Element>: ObservableObject where Element: MenuDisplayable, Element: Hashable {
     public let titleKey: LocalizedStringKey
     public let items: [Element]
     private let isIncluded: (Element, String) throws -> Bool

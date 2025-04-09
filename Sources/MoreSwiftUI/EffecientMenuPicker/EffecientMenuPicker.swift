@@ -211,7 +211,7 @@ private struct MenuBody<SelectionValue, Content> : View where SelectionValue: Ha
     clamp(CGFloat(count) * MenuDimension.itemHeight, in: 100.0..<MenuDimension.maxHeight)
 }
 
-private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Hashable {
+private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Hashable, SelectionValue: MenuDisplayable {
     @Binding var selection: SelectionValue
     @Binding var isPicking: Bool
     @ObservedObject private var model: MenuFilterModel<SelectionValue>
@@ -228,7 +228,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
                             ForEach(model.items, id: \.self) { data in
                                 HStack(spacing: 0) {
                                     Checkmark(checked: data == selection)
-                                    Text("\(data)").tag(data).frame(
+                                    Text(data.title()).tag(data).frame(
                                         maxWidth:.infinity,
                                         alignment: .leading
                                     )
@@ -242,7 +242,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
                             ForEach(model.filteredItems, id: \.self)  { data in
                                 HStack(spacing: 0) {
                                     Checkmark(checked: data == selection)
-                                    Text("\(data)").tag(data).frame(
+                                    Text(data.title()).tag(data).frame(
                                         maxWidth:.infinity,
                                         alignment: .leading
                                     )
@@ -276,7 +276,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
 
 @available(watchOS, unavailable)
 @available(macOS 13.3, iOS 16.4, *)
-public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable {
+public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable, SelectionValue : MenuDisplayable {
     let titleKey:LocalizedStringKey
     private let content: () -> Content
     @Binding private var selection: SelectionValue
@@ -331,12 +331,17 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
     }
 }
 
+extension Int : MenuDisplayable {
+    public func title() -> LocalizedStringKey {
+        return "\(self)"
+    }
+}
 @available(macOS 13.3, iOS 16.4, *)
 struct PickerPreview : View {
     @State var selection: Int = 0
     @State var search: String = ""
     var items: [Int]
-    @ObservedObject var model: MenuFilterModel<Int>
+    var model: MenuFilterModel<Int>
     var body: some View {
         VStack {
             if #available(iOS 18.0, macOS 15.0, *) {
@@ -369,7 +374,5 @@ struct PickerPreview : View {
 #Preview {
     if #available(macOS 13.3, iOS 16.4, *) {
         PickerPreview()
-    } else {
-        // Fallback on earlier versions
     }
 }
