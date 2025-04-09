@@ -220,7 +220,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
     
     var body : some View {
         VStack {
-            SearchInputField("insert to search", text: $token).frame(height: 40).padding(.horizontal, 10)
+            SearchInputField(model.titleKey, text: $token).frame(height: 40).padding(.horizontal, 10)
             ScrollViewReader { scroller in
                 ScrollView {
                     LazyVStack {
@@ -277,7 +277,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
 @available(watchOS, unavailable)
 @available(macOS 13.3, iOS 16.4, *)
 public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable {
-    let title:String
+    let titleKey:LocalizedStringKey
     private let content: () -> Content
     @Binding private var selection: SelectionValue
     @State private var isPicking = false
@@ -290,7 +290,7 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
             isPicking = true
         } label: {
             HStack {
-                Text("\(title)").frame(minWidth: 30)
+                Text(titleKey).frame(minWidth: 30)
                 MenuLabelIcon().menuLabelStyle()
             }.frame(minHeight: 20)
         }.menuButtonStyle(isPicking: $isPicking) {
@@ -312,16 +312,18 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
         }
     }
     
-    public init(_ title: String, selection: Binding<SelectionValue>, includes: @escaping (SelectionValue) -> Bool = {_ in true}, @ViewBuilder content: @escaping () -> Content) {
-        self.title = title
+    
+    @available(macOS 15.0, iOS 18.0, *)
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, includes: @escaping (SelectionValue) -> Bool = {_ in true}, @ViewBuilder content: @escaping () -> Content) {
+        self.titleKey = titleKey
         self._selection = selection
         self.includes = includes
         self.content = content
         self.model = nil
     }
     
-    public init(_ title: String, selection: Binding<SelectionValue>, model: MenuFilterModel<SelectionValue>) where Content == EmptyView {
-        self.title = title
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, model: MenuFilterModel<SelectionValue>) where Content == EmptyView {
+        self.titleKey = titleKey
         self._selection = selection
         self.includes = { _ in true }
         self.model = model
@@ -337,15 +339,17 @@ struct PickerPreview : View {
     @ObservedObject var model: MenuFilterModel<Int>
     var body: some View {
         VStack {
-            EffecientMenuPicker("For Each Demo - Pick \(selection)", selection: $selection, includes: { element in
-                guard !search.isEmpty else { return true }
-                return "\(element)".contains(search)
-            }) {
-                SearchInputField("insert to search", text: $search).frame(height: 40).padding(.horizontal, 10)
-                ForEach(0..<100) { i in
-                    Text("\(i)")
-                }
-            }.padding(20)
+            if #available(iOS 18.0, macOS 15.0, *) {
+                EffecientMenuPicker("For Each Demo - Pick \(selection)", selection: $selection, includes: { element in
+                    guard !search.isEmpty else { return true }
+                    return "\(element)".contains(search)
+                }) {
+                    SearchInputField("insert to search", text: $search).frame(height: 40).padding(.horizontal, 10)
+                    ForEach(0..<100) { i in
+                        Text("\(i)")
+                    }
+                }.padding(20)
+            }
             EffecientMenuPicker(
                 "Model base Demo - Pick \(selection)",
                 selection: $selection,
@@ -356,7 +360,7 @@ struct PickerPreview : View {
     }
     init() {
         self.items = Array(0..<125)
-        self.model = MenuFilterModel(items: items) { v, token in
+        self.model = MenuFilterModel("filter menu",items: items) { v, token in
             return String(v).contains(token)
         }
     }
