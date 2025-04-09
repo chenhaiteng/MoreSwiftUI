@@ -28,6 +28,30 @@ private struct MenuLabelIcon: View {
     }
 }
 
+private struct SearchInputField: View {
+    @Binding private var text: String
+    private let titleKey: LocalizedStringKey
+    var body: some View {
+        HStack(alignment: .center) {
+            Image(systemName: "magnifyingglass.circle")
+                .scaledToFit()
+                .foregroundStyle(Color.secondary)
+            TextField(titleKey, text: $text)
+        }.frame(height: 40).padding(.horizontal, 10)
+    }
+    
+    init(_ title: String = "", text: Binding<String>) {
+        self._text = text
+        self.titleKey = LocalizedStringKey(title)
+    }
+    
+    init(_ titleKey: LocalizedStringKey, text: Binding<String>) {
+        self._text = text
+        self.titleKey = titleKey
+    }
+    
+}
+
 // Appearance of Menu
 private enum MenuDimension {
 #if os(macOS)
@@ -165,6 +189,8 @@ private struct MenuBody<SelectionValue, Content> : View where SelectionValue: Ha
         self.includes = includes
     }
 }
+
+
 private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Hashable {
     @Binding var selection: SelectionValue
     @Binding var isPicking: Bool
@@ -174,12 +200,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
     
     var body : some View {
         VStack {
-            HStack(alignment: .center) {
-                Image(systemName: "magnifyingglass.circle")
-                    .scaledToFit()
-                    .foregroundStyle(Color.secondary)
-                TextField("insert to search", text: $token)
-            }.frame(height: 40).padding(.horizontal, 10)
+            SearchInputField("insert to search", text: $token).frame(height: 40).padding(.horizontal, 10)
             ScrollViewReader { scroller in
                 ScrollView {
                     LazyVStack {
@@ -313,7 +334,7 @@ struct PickerPreview : View {
                 guard !search.isEmpty else { return true }
                 return "\(element)".contains(search)
             }) {
-                TextField("search", text: $search)
+                SearchInputField("insert to search", text: $search).frame(height: 40).padding(.horizontal, 10)
                 ForEach(0..<100) { i in
                     Text("\(i)")
                 }
