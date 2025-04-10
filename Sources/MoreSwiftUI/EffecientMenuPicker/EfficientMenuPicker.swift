@@ -1,5 +1,5 @@
 //
-//  EffecientMenuPicker.swift
+//  EfficientMenuPicker.swift
 //  MoreSwiftUI
 //
 //  Created by Chen Hai Teng on 4/5/25.
@@ -337,7 +337,7 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
         let items = ["Option 1", "Option 2", "Option 3"]
 
         var body: some View {
-            EffecientMenuPicker("Select an option", selection: $selectedItem) {
+            EfficientMenuPicker("Select an option", selection: $selectedItem) {
                 ForEach(items, id: \.self) { item in
                     Text(item).tag(item)
                 }
@@ -354,19 +354,19 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
         }
 
         var body: some View {
-            EffecientMenuPicker("Select an option", selection: $selectedItem, model)
+            EfficientMenuPicker("Select an option", selection: $selectedItem, model)
         }
     }
     ```
  - Note:
-    The model-based `EffecientMenuPicker` supports macOS 13.3, iOS 16.4, and later versions.
-    The DSL style `EffecientMenuPicker` supports macOS 15.0, iOS 18.0, and later versions.
+    The model-based `EfficientMenuPicker` supports macOS 13.3, iOS 16.4, and later versions.
+    The DSL style `EfficientMenuPicker` supports macOS 15.0, iOS 18.0, and later versions.
  - See also:
     `MenuFilterModel`
  */
 @available(watchOS, unavailable)
 @available(macOS 13.3, iOS 16.4, *)
-public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable, SelectionValue : MenuDisplayable {
+public struct EfficientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable, SelectionValue : MenuDisplayable {
     let titleKey:LocalizedStringKey
     private let content: () -> Content
     @Binding private var selection: SelectionValue
@@ -402,7 +402,7 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
     }
     
     /**
-     Initializes a new instance of `EffecientMenuPicker` with a title, selection binding, and a content view builder.
+     Initializes a new instance of `EfficientMenuPicker` with a title, selection binding, and a content view builder.
 
      - Parameters:
         - titleKey: The localized string key for the title of the picker.
@@ -410,7 +410,7 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
         - includes: A closure that determines whether a given selection value should be included in the picker. The default value is a closure that always returns true.
         - content: A view builder that creates the content of the picker.
 
-     Creates an `EffecientMenuPicker` that uses a DSL style to provide the data and filtering logic. The picker will display the items from the content view builder and allow the user to select an item. The selected item will be bound to the `selection` parameter.
+     Creates an `EfficientMenuPicker` that uses a DSL style to provide the data and filtering logic. The picker will display the items from the content view builder and allow the user to select an item. The selected item will be bound to the `selection` parameter.
 
      Example usage:
      ```swift
@@ -418,7 +418,7 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
          @State private var selectedItem: String = "Option 1"
 
          var body: some View {
-             EffecientMenuPicker("Select an option", selection: $selectedItem) {
+             EfficientMenuPicker("Select an option", selection: $selectedItem) {
                  Text("Option 1").tag("Option 1")
                  Text("Option 2").tag("Option 2")
                  Text("Option 3").tag("Option 3")
@@ -437,14 +437,14 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
     }
     
     /**
-     Initializes a new instance of `EffecientMenuPicker` with a title, selection binding, and a model.
+     Initializes a new instance of `EfficientMenuPicker` with a title, selection binding, and a model.
 
      - Parameters:
         - titleKey: The localized string key for the title of the picker.
         - selection: A binding to the selected value.
         - model: The model that provides the data and filtering logic for the picker.
 
-     Creates an `EffecientMenuPicker` that uses a model to provide the data and filtering logic. The picker will display the items from the model and allow the user to select an item. The selected item will be bound to the `selection` parameter.
+     Creates an `EfficientMenuPicker` that uses a model to provide the data and filtering logic. The picker will display the items from the model and allow the user to select an item. The selected item will be bound to the `selection` parameter.
 
      Example usage:
      ```swift
@@ -455,7 +455,7 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
          }
 
          var body: some View {
-             EffecientMenuPicker("Select an option", selection: $selectedItem, model: model)
+             EfficientMenuPicker("Select an option", selection: $selectedItem, model: model)
          }
      }
      ```
@@ -483,7 +483,7 @@ struct PickerPreview : View {
     var body: some View {
         VStack {
             if #available(iOS 18.0, macOS 15.0, *) {
-                EffecientMenuPicker("For Each Demo - Pick \(selection)", selection: $selection, includes: { element in
+                EfficientMenuPicker("For Each Demo - Pick \(selection)", selection: $selection, includes: { element in
                     guard !search.isEmpty else { return true }
                     return "\(element)".contains(search)
                 }) {
@@ -498,7 +498,7 @@ struct PickerPreview : View {
 //                    }
                 }.padding(20)
             }
-            EffecientMenuPicker(
+            EfficientMenuPicker(
                 "Model base Demo - Pick \(selection)",
                 selection: $selection,
                 model: model

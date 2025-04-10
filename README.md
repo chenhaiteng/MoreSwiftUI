@@ -49,7 +49,7 @@ pod 'MoreSwiftUI'
 
 ### Usages
 
-#### EffecientMenuPicker
+#### EfficientMenuPicker
 ```swift
 struct ContentView : View {
     @State var selection: Int = 0
@@ -58,7 +58,7 @@ struct ContentView : View {
         return String(vaule).contains(search_token)
     }
     var body: some View {
-        EffecientMenuPicker("My Menu", selection: $selection, model: model)
+        EfficientMenuPicker("My Menu", selection: $selection, model: model)
 }
 ```
 ## License
