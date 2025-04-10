@@ -16,7 +16,7 @@ public protocol MenuDisplayable {
 }
 
 /**
- A model that provides data and filtering logic for the `EffecientMenuPicker` class.
+ A model that provides data and filtering logic for the `EfficientMenuPicker` class.
 
  The `MenuFilterModel` class is used to manage a list of items and filter them based on a search token. It conforms to the `ObservableObject` protocol to allow SwiftUI views to react to changes in the filtered items.
 
