@@ -15,7 +15,7 @@ A collection of custom swiftUI controls
 1. File > Swift Packages > Add Package Dependency...
 2. Choose Project you want to add MoreSwiftUI
 3. Paste repository https://github.com/chenhaiteng/MoreSwiftUI.git
-4. Rules > Version: Up to Next Major 0.1.0
+4. Rules > Version: Up to Next Major 0.2.0
 It's can also apply Rules > Branch : main to access latest code.
 If you want try some experimental features, you can also apply Rules > Branch : develop
 
@@ -28,7 +28,7 @@ If you want try some experimental features, you can also apply Rules > Branch : 
 #### - Add to SPM package(To use this package in your library/framework):
 ```swift
 dependencies: [
-    .package(url: "https://github.com/chenhaiteng/MoreSwiftUI.git", from: "0.4.0")
+    .package(url: "https://github.com/chenhaiteng/MoreSwiftUI.git", from: "0.2.0")
     // To specify branch, use following statement to instead of.
     // .package(url: "https://github.com/chenhaiteng/MoreSwiftUI.git", branch: "${branch_name}"))
 ],
@@ -47,6 +47,20 @@ it, simply add the following line to your Podfile:
 pod 'MoreSwiftUI'
 ```
 
+### Usages
+
+#### EffecientMenuPicker
+```swift
+struct ContentView : View {
+    @State var selection: Int = 0
+    @State var search: String = ""
+    var model = MenuFilterModel("search title", items: [1, 2, 3, 4, 5]) { value, search_token in
+        return String(vaule).contains(search_token)
+    }
+    var body: some View {
+        EffecientMenuPicker("My Menu", selection: $selection, model: model)
+}
+```
 ## License
 
 MoreSwiftUI is available under the MIT license. See the LICENSE file for more info.
