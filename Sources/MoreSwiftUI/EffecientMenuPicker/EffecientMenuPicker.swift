@@ -36,7 +36,7 @@ private struct SearchInputField: View {
             Image(systemName: "magnifyingglass.circle")
                 .scaledToFit()
                 .foregroundStyle(Color.secondary)
-            TextField(titleKey, text: $text)
+            TextField(titleKey, text: $text).autocorrectionDisabled()
         }.frame(height: 40).padding(.horizontal, 10)
     }
     
