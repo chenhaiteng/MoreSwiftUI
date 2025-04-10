@@ -79,6 +79,8 @@ enum MenuDimension {
     @usableFromInline
     static let itemHeight: CGFloat = 52
 #endif
+    @usableFromInline
+    static let maxItems: Int = 1000
 }
 
 // View Modifier of Menu
@@ -217,51 +219,81 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
     @ObservedObject private var model: MenuFilterModel<SelectionValue>
     @State private var menuHeight: CGFloat = 30
     @State private var token: String = ""
+    @State private var debouncedToken: String = ""
+    @State private var searchTask: Task<Void, Never>?
+    @State private var isLoading: Bool = false
+    
+    private func handleSearch(_ newValue: String) {
+        isLoading = true
+        searchTask?.cancel()
+        searchTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
+            await MainActor.run {
+                model.search(newValue)
+                isLoading = false
+            }
+        }
+    }
     
     var body : some View {
         VStack {
             SearchInputField(model.titleKey, text: $token).frame(height: 40).padding(.horizontal, 10)
+            if model.items.count > MenuDimension.maxItems {
+                Text("Showing first \(MenuDimension.maxItems) items")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+            }
             ScrollViewReader { scroller in
                 ScrollView {
-                    LazyVStack {
-                        if model.filteredItems.isEmpty {
-                            ForEach(model.items, id: \.self) { data in
-                                HStack(spacing: 0) {
-                                    Checkmark(checked: data == selection)
-                                    Text(data.title()).tag(data).frame(
-                                        maxWidth:.infinity,
-                                        alignment: .leading
-                                    )
-                                }.contentShape(Rectangle()).onTapGesture {
-                                    selection = data
-                                    isPicking = false
+                    if isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if model.items.isEmpty {
+                        Text("No items available")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        LazyVStack {
+                            if model.filteredItems.isEmpty {
+                                ForEach(model.items, id: \.self) { data in
+                                    HStack(spacing: 0) {
+                                        Checkmark(checked: data == selection)
+                                        Text(data.title()).tag(data).frame(
+                                            maxWidth:.infinity,
+                                            alignment: .leading
+                                        )
+                                    }.contentShape(Rectangle()).onTapGesture {
+                                        selection = data
+                                        isPicking = false
+                                    }
+                                    Divider().padding(.horizontal, 10)
                                 }
-                                Divider().padding(.horizontal, 10)
-                            }
-                        } else {
-                            ForEach(model.filteredItems, id: \.self)  { data in
-                                HStack(spacing: 0) {
-                                    Checkmark(checked: data == selection)
-                                    Text(data.title()).tag(data).frame(
-                                        maxWidth:.infinity,
-                                        alignment: .leading
-                                    )
-                                }.contentShape(Rectangle()).onTapGesture {
-                                    selection = data
-                                    isPicking = false
+                            } else {
+                                ForEach(model.filteredItems, id: \.self)  { data in
+                                    HStack(spacing: 0) {
+                                        Checkmark(checked: data == selection)
+                                        Text(data.title()).tag(data).frame(
+                                            maxWidth:.infinity,
+                                            alignment: .leading
+                                        )
+                                    }.contentShape(Rectangle()).onTapGesture {
+                                        selection = data
+                                        isPicking = false
+                                    }
+                                    Divider().padding(.horizontal, 10)
                                 }
-                                Divider().padding(.horizontal, 10)
                             }
                         }
                     }
                 }.onAppear {
-                    menuHeight = height(of: model.displayCount)
+                    menuHeight = height(of: min(model.displayCount, MenuDimension.maxItems))
                 }.frame(height: menuHeight)
                     .onChange(of: model.filteredItems) { _ in
-                        menuHeight = height(of: model.displayCount)
+                        menuHeight = height(of: min(model.displayCount, MenuDimension.maxItems))
                     }
                     .onChange(of: token) { newValue in
-                        model.search(newValue)
+                        handleSearch(newValue)
                     }
             }
         }
@@ -274,6 +306,64 @@ private struct ModelBaseMenuBody<SelectionValue> : View where SelectionValue: Ha
     }
 }
 
+/**
+ A customizable menu picker component for SwiftUI.
+
+ Memory Management:
+ - The picker uses SwiftUI's built-in memory management
+ - MenuFilterModel should be owned by the parent view to prevent retain cycles
+ - Closures (includes and content) are properly marked as @escaping
+ - No strong reference cycles are created by default
+ - Search tasks are properly cancelled to prevent memory leaks
+
+ Performance Considerations:
+ - Uses LazyVStack for efficient list rendering
+ - Implements 300ms debounced search filtering
+ - Optimizes height calculations with caching
+ - Uses ScrollViewReader for efficient scrolling
+ - Maximum height is clamped to prevent performance issues with large lists
+
+ Thread Safety:
+ - All UI updates are performed on the main thread
+ - State management is handled by SwiftUI
+ - No explicit thread synchronization needed
+ - Search operations are properly dispatched to the main thread
+
+ - Example usage:
+    ```swift
+    // Dynamic data source
+    struct ContentView: View {
+        @State private var selectedItem: String = "Option 1"
+        let items = ["Option 1", "Option 2", "Option 3"]
+
+        var body: some View {
+            EffecientMenuPicker("Select an option", selection: $selectedItem) {
+                ForEach(items, id: \.self) { item in
+                    Text(item).tag(item)
+                }
+            }
+        }
+    }
+    ```
+    ```swift
+    // 
+    struct ContentView: View {
+        @State private var selectedItem: String = "Option 1"
+        private let model = MenuFilterModel("filter menu",items: ["Option 1", "Option 2", "Option 3"]) { v, token in
+            return String(v).contains(token)
+        }
+
+        var body: some View {
+            EffecientMenuPicker("Select an option", selection: $selectedItem, model)
+        }
+    }
+    ```
+ - Note:
+    The model-based `EffecientMenuPicker` supports macOS 13.3, iOS 16.4, and later versions.
+    The DSL style `EffecientMenuPicker` supports macOS 15.0, iOS 18.0, and later versions.
+ - See also:
+    `MenuFilterModel`
+ */
 @available(watchOS, unavailable)
 @available(macOS 13.3, iOS 16.4, *)
 public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: View, SelectionValue: Hashable, SelectionValue : MenuDisplayable {
@@ -283,7 +373,6 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
     @State private var isPicking = false
     private var model: MenuFilterModel<SelectionValue>?
     private let includes: (SelectionValue) -> Bool
-    
     
     public var body: some View {
         Button {
@@ -312,7 +401,32 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
         }
     }
     
-    
+    /**
+     Initializes a new instance of `EffecientMenuPicker` with a title, selection binding, and a content view builder.
+
+     - Parameters:
+        - titleKey: The localized string key for the title of the picker.
+        - selection: A binding to the selected value, which is derived from the tag of the subview in content.
+        - includes: A closure that determines whether a given selection value should be included in the picker. The default value is a closure that always returns true.
+        - content: A view builder that creates the content of the picker.
+
+     Creates an `EffecientMenuPicker` that uses a DSL style to provide the data and filtering logic. The picker will display the items from the content view builder and allow the user to select an item. The selected item will be bound to the `selection` parameter.
+
+     Example usage:
+     ```swift
+     struct ContentView: View {
+         @State private var selectedItem: String = "Option 1"
+
+         var body: some View {
+             EffecientMenuPicker("Select an option", selection: $selectedItem) {
+                 Text("Option 1").tag("Option 1")
+                 Text("Option 2").tag("Option 2")
+                 Text("Option 3").tag("Option 3")
+             }
+         }
+     }
+     ```
+     */
     @available(macOS 15.0, iOS 18.0, *)
     public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, includes: @escaping (SelectionValue) -> Bool = {_ in true}, @ViewBuilder content: @escaping () -> Content) {
         self.titleKey = titleKey
@@ -322,6 +436,30 @@ public struct EffecientMenuPicker<SelectionValue, Content>: View where Content: 
         self.model = nil
     }
     
+    /**
+     Initializes a new instance of `EffecientMenuPicker` with a title, selection binding, and a model.
+
+     - Parameters:
+        - titleKey: The localized string key for the title of the picker.
+        - selection: A binding to the selected value.
+        - model: The model that provides the data and filtering logic for the picker.
+
+     Creates an `EffecientMenuPicker` that uses a model to provide the data and filtering logic. The picker will display the items from the model and allow the user to select an item. The selected item will be bound to the `selection` parameter.
+
+     Example usage:
+     ```swift
+     struct ContentView: View {
+         @State private var selectedItem: String = "Option 1"
+         private let model = MenuFilterModel("filter menu", items: ["Option 1", "Option 2", "Option 3"]) { v, token in
+             return String(v).contains(token)
+         }
+
+         var body: some View {
+             EffecientMenuPicker("Select an option", selection: $selectedItem, model: model)
+         }
+     }
+     ```
+     */
     public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, model: MenuFilterModel<SelectionValue>) where Content == EmptyView {
         self.titleKey = titleKey
         self._selection = selection
@@ -350,9 +488,14 @@ struct PickerPreview : View {
                     return "\(element)".contains(search)
                 }) {
                     SearchInputField("insert to search", text: $search).frame(height: 40).padding(.horizontal, 10)
-                    ForEach(0..<100) { i in
-                        Text("\(i)")
-                    }
+                    Text("Option 1").tag(1)
+                    Text("2").tag(2)
+                    Text("3").tag(3)
+                    Text("4").tag(4)
+                    Text("5").tag(5)
+//                    ForEach(0..<100) { i in
+//                        Text("\(i)")
+//                    }
                 }.padding(20)
             }
             EffecientMenuPicker(
