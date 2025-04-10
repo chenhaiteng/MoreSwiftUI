@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'MoreSwiftUI'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'MoreSwiftUI collects small controls and extensions that based on SwiftUI.'
   s.platform = :osx, '13.0'
   s.platform = :ios, '16.0'
